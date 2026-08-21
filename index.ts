@@ -133,7 +133,7 @@ async function cmdSetup(ctx: ExtensionContext, stateDir: string): Promise<void> 
         return;
       }
     } else {
-      const meta = await runGh(["api", `repos/${repo}`, "--jq", ".size"]);
+      const meta = await runGh(["api", `repos/${repo}/branches`, "--jq", "length"]);
       if (meta.code === 0 && meta.stdout.trim() !== "0") {
         const reuse = await ctx.ui.confirm(
           "Reuse existing repo?",
