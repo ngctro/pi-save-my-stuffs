@@ -150,7 +150,10 @@ function rebuildMirror(worktree: string, agentDir: string): void {
   for (const p of ALLOWLIST) {
     const src = path.join(agentDir, p.src);
     if (!fs.existsSync(src)) continue;
-    fs.cpSync(src, path.join(worktree, p.dest), { recursive: true });
+    fs.cpSync(src, path.join(worktree, p.dest), {
+      recursive: true,
+      filter: (s) => path.basename(s) !== ".git",
+    });
   }
 }
 

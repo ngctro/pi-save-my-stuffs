@@ -35,6 +35,14 @@ fs.writeFileSync(path.join(agentDir, "prompts/y.md"), "hi\n");
 fs.writeFileSync(path.join(agentDir, "secrets/auth.json"), '{"token":"t"}');
 fs.writeFileSync(path.join(agentDir, "skills/leak/.env"), "SECRET=1\n");
 fs.writeFileSync(path.join(agentDir, "extensions/key.pem"), "-----BEGIN PRIVATE KEY-----\n");
+const embedded = path.join(agentDir, "extensions/embedded-tool");
+fs.mkdirSync(embedded, { recursive: true });
+fs.writeFileSync(path.join(embedded, "tool.ts"), "export const tool = 1;\n");
+execFileSync("git", ["init", "--quiet"], { cwd: embedded });
+execFileSync("git", ["-C", embedded, "add", "-A"], {});
+execFileSync("git", ["-C", embedded, "commit", "--quiet", "-m", "init"], {
+  env: { ...process.env, GIT_AUTHOR_NAME: "v", GIT_AUTHOR_EMAIL: "v@l", GIT_COMMITTER_NAME: "v", GIT_COMMITTER_EMAIL: "v@l" },
+});
 
 const remote = path.join(tmp, "remote.git");
 execFileSync("git", ["init", "--quiet", "--bare", "-b", "main", remote]);
@@ -68,6 +76,14 @@ const walked: string[] = [];
 check(
   !walked.some((p) => /auth\.json|(^|\/)\.env$|key\.pem/.test(p)),
   "trap secrets absent everywhere in cloned backup",
+);
+check(
+  fs.existsSync(path.join(clone1, "extensions/embedded-tool/tool.ts")),
+  "nested git repo is copied as plain files, not a gitlink",
+);
+check(
+  !git(remote, "ls-tree", "-r", "HEAD").includes("160000"),
+  "no gitlink entries in backup tree",
 );
 
 fs.writeFileSync(path.join(agentDir, "settings.json"), '{"theme":"light"}');
