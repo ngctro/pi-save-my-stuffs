@@ -77,6 +77,10 @@ check(
   !walked.some((p) => /auth\.json|(^|\/)\.env$|key\.pem/.test(p)),
   "trap secrets absent everywhere in cloned backup",
 );
+const readmePath = path.join(clone1, "README.md");
+const readme = fs.existsSync(readmePath) ? fs.readFileSync(readmePath, "utf8") : "";
+check(readme.includes("Restore") && readme.includes("gh auth login"), "backup ships a restore guide");
+check(readme.includes(remote), "restore guide references the actual remote");
 check(
   fs.existsSync(path.join(clone1, "extensions/embedded-tool/tool.ts")),
   "nested git repo is copied as plain files, not a gitlink",
