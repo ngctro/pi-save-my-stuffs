@@ -131,6 +131,12 @@ async function convergeAndCommit(
   }
   rebuildMirror(worktree, agentDir);
   fs.writeFileSync(path.join(worktree, ".gitignore"), GITIGNORE);
+  const index = await run("git", ["ls-files", "-s"], worktree);
+  for (const line of index.stdout.split("\n")) {
+    if (!line.startsWith("160000")) continue;
+    const linkPath = line.split("\t")[1];
+    if (linkPath) await runGit(worktree, ["rm", "--cached", "-q", "-r", "--", linkPath], "git rm --cached");
+  }
   await runGit(worktree, ["add", "-A"], "git add");
   if (!(await run("git", ["status", "--porcelain"], worktree)).stdout.trim()) return false;
   await runGit(worktree, ["commit", "-m", `pi-backup: ${hostname} ${new Date().toISOString()}`], "git commit");

@@ -121,6 +121,30 @@ const final = await sync({ agentDir, stateDir, hostname: "verify-host" });
 check(final.kind === "clean", `final sync reports clean (got ${final.kind})`);
 check(git(worktree, "status", "--porcelain").trim() === "", "worktree porcelain empty after final sync");
 
+const repairState = path.join(tmp, "repair-remote.git");
+execFileSync("git", ["init", "--quiet", "--bare", "-b", "main", repairState]);
+const repairWork = path.join(tmp, "repair-seed");
+execFileSync("git", ["init", "--quiet", "-b", "main", repairWork]);
+fs.cpSync(embedded, path.join(repairWork, "extensions/embedded-tool"), { recursive: true });
+execFileSync("git", ["-C", repairWork, "add", "-A"], {});
+execFileSync("git", ["-C", repairWork, "commit", "--quiet", "-m", "seed gitlink the way the old engine did"], {
+  env: { ...process.env, GIT_AUTHOR_NAME: "v", GIT_AUTHOR_EMAIL: "v@l", GIT_COMMITTER_NAME: "v", GIT_COMMITTER_EMAIL: "v@l" },
+});
+if (execFileSync("git", ["-C", repairWork, "ls-tree", "-r", "HEAD"], { encoding: "utf8" }).includes("160000") === false) {
+  throw new Error("seed failed to produce a gitlink; test premise broken");
+}
+execFileSync("git", ["-C", repairWork, "push", "--quiet", repairState, "main"], {});
+const repairStateDir = path.join(tmp, "repair-state");
+fs.mkdirSync(path.dirname(path.join(repairStateDir, "config.json")), { recursive: true });
+saveConfig(repairStateDir, { ...DEFAULT_CONFIG, repo: repairState });
+await sync({ agentDir, stateDir: repairStateDir, hostname: "verify-host" });
+const repairedTree = execFileSync("git", ["--git-dir", path.join(repairStateDir, "repo", ".git"), "ls-tree", "-r", "HEAD"], { encoding: "utf8" });
+check(!repairedTree.includes("160000"), "sync repairs an existing gitlink into plain files");
+check(
+  repairedTree.includes("extensions/embedded-tool/tool.ts"),
+  "repaired backup holds the embedded repo contents",
+);
+
 const badDir = path.join(tmp, "badcfg");
 fs.mkdirSync(badDir, { recursive: true });
 fs.writeFileSync(
