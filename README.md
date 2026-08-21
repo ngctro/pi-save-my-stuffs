@@ -18,13 +18,13 @@ Secrets stay out even if a file name matches inside the allowlist. The backup re
 
 ## Install
 
-Clone this repo into your global extensions directory:
+Install as a pi git package:
 
 ```
-git clone https://github.com/ngctro/pi-save-my-stuffs ~/.pi/agent/extensions/pi-save-my-stuffs
+pi install git:github.com/ngctro/pi-save-my-stuffs@v0.1.0
 ```
 
-Restart pi. Until you run setup, the status line shows `not configured`.
+Drop the `@v0.1.0` suffix to track `main` instead of a tagged release. Restart pi after installing. Until you run setup, the status line shows `not configured`.
 
 ## Set up a backup repo
 
