@@ -132,6 +132,15 @@ async function cmdSetup(ctx: ExtensionContext, stateDir: string): Promise<void> 
         ctx.ui.notify(`save-my-stuffs: repo create failed: ${stderrTail(created.stderr)}`, "error");
         return;
       }
+    } else {
+      const meta = await runGh(["api", `repos/${repo}`, "--jq", ".size"]);
+      if (meta.code === 0 && meta.stdout.trim() !== "0") {
+        const reuse = await ctx.ui.confirm(
+          "Reuse existing repo?",
+          `${repo} already exists and is not empty. Backing up will replace its contents on ${DEFAULT_CONFIG.branch}.`,
+        );
+        if (!reuse) return;
+      }
     }
   }
   saveConfig(stateDir, { ...DEFAULT_CONFIG, repo });
