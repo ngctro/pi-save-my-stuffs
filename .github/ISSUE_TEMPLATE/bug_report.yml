@@ -1,0 +1,47 @@
+name: Bug report
+description: Report a broken backup or a wrong restore
+labels: [bug]
+body:
+  - type: textarea
+    id: what-happened
+    attributes:
+      label: What happened
+      description: Include the exact notify text or status line you saw.
+    validations:
+      required: true
+  - type: textarea
+    id: repro
+    attributes:
+      label: Steps to reproduce
+      placeholder: |
+        1. Run /save-my-stuffs ...
+        2. See error
+    validations:
+      required: true
+  - type: input
+    id: pi-version
+    attributes:
+      label: pi version
+      placeholder: 0.84.2
+    validations:
+      required: true
+  - type: dropdown
+    id: install
+    attributes:
+      label: Install method
+      options:
+        - "pi install git:github.com/ngctro/pi-save-my-stuffs@..."
+        - Cloned into ~/.pi/agent/extensions
+        - Other
+    validations:
+      required: true
+  - type: input
+    id: os
+    attributes:
+      label: OS
+      placeholder: Fedora 43 / macOS 15 / WSL2
+  - type: textarea
+    id: logs
+    attributes:
+      label: Output of cat ~/.pi/save-my-stuffs/last-sync.json
+      description: Redact anything you consider sensitive.
