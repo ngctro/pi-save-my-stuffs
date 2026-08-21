@@ -151,6 +151,7 @@ async function cmdSetup(ctx: ExtensionContext, stateDir: string): Promise<void> 
     `save-my-stuffs: backing up to ${displayUrl(repo)} — ${describeOutcome(outcome)}`,
     outcome.kind === "failed" ? "error" : "info",
   );
+  if (ctx.hasUI) ctx.ui.setStatus("save-my-stuffs", statusText(outcome));
 }
 
 export default function (pi: ExtensionAPI) {
